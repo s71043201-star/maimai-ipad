@@ -141,30 +141,25 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
   overflow:hidden;z-index:30;display:none;opacity:.9;box-shadow:0 4px 20px rgba(0,0,0,.8)}
 
 /* ===== ATTRACT SCREEN ===== */
-#attract{background:#111;align-items:center;justify-content:center;cursor:pointer}
-.attract-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  width:100%;height:100%;position:relative;overflow:hidden;pointer-events:none}
-.attract-logo-wrap{position:relative;z-index:3;text-align:center;pointer-events:none}
+#attract{background:#0a0010;cursor:pointer;overflow:hidden}
+#attract *{pointer-events:none}
+.attract-inner{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center}
+.attract-logo-wrap{position:relative;z-index:3;text-align:center}
 .attract-maimai-txt{font-size:clamp(14px,3vw,20px);font-weight:900;letter-spacing:3px;
   background:linear-gradient(90deg,#fff8e1,#ffe57a,#ff6d00);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
 .attract-buddies-txt{font-size:clamp(38px,10vw,76px);font-weight:900;letter-spacing:2px;
-  color:#fff;text-shadow:0 0 0 #fff;
-  -webkit-text-stroke:2px #fff;
   background:linear-gradient(180deg,#00eeff 0%,#0088ff 40%,#7700ff 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 16px rgba(0,180,255,.8)) drop-shadow(3px 3px 0 rgba(0,0,60,.8));
-  line-height:1}
+  filter:drop-shadow(0 0 16px rgba(0,180,255,.8));line-height:1}
 .attract-buddies-jp{font-size:clamp(12px,2.5vw,18px);color:#ff8c00;font-weight:900;
-  letter-spacing:6px;margin-top:2px;
-  text-shadow:0 0 8px rgba(255,140,0,.6)}
+  letter-spacing:6px;margin-top:2px}
 .attract-insert{font-size:clamp(13px,2.8vw,20px);font-weight:900;letter-spacing:5px;
-  color:#fff;margin-top:28px;
-  animation:tapBlink 1.2s ease-in-out infinite;
-  text-shadow:0 0 10px rgba(255,255,255,.5)}
-@keyframes tapBlink{0%,100%{opacity:.2} 50%{opacity:1}}
+  color:#fff;margin-top:28px;animation:tapBlink 1.2s ease-in-out infinite}
+@keyframes tapBlink{0%,100%{opacity:.2}50%{opacity:1}}
 .attract-ver{position:absolute;bottom:16px;font-size:10px;
-  color:rgba(200,220,255,.3);letter-spacing:3px;text-transform:uppercase}
+  color:rgba(200,220,255,.25);letter-spacing:3px}
 
 /* COUNTDOWN */
 #countdown{display:none;background:rgba(0,5,20,.88);align-items:center;justify-content:center}
@@ -282,9 +277,9 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
 </div>
 
 <!-- ATTRACT SCREEN (shown first) -->
-<div class="screen" id="attract" onclick="gotoMenu()" style="display:flex">
+<div class="screen" id="attract" style="display:flex">
+  <canvas id="attractCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
   <div class="attract-inner">
-    <canvas id="attractCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
     <div class="attract-logo-wrap">
       <div class="attract-maimai-txt">maimai でらっくす</div>
       <div class="attract-buddies-txt">BUDDiES+</div>
@@ -1589,10 +1584,15 @@ render();
 
 function showAttract(){
   gState='attract';
-  const el=document.getElementById('attract');
-  el.style.display='flex';
+  document.getElementById('attract').style.display='flex';
   document.getElementById('menu').style.display='none';
 }
+
+// Attract screen tap handler on the canvas itself
+document.getElementById('attractCanvas').addEventListener('click', gotoMenu);
+document.getElementById('attractCanvas').addEventListener('touchend', function(e){
+  e.preventDefault(); gotoMenu();
+}, {passive:false});
 </script>
 </body>
 </html>
