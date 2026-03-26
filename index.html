@@ -214,7 +214,7 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
     <div class="import-handle"></div>
     <div class="import-title">匯入譜面 / ADD MUSIC</div>
     <div class="import-row">
-      <div class="imp-btn" onclick="document.getElementById('adxFI').click()" style="border-color:rgba(255,160,0,.5);color:#ffaa44;background:rgba(180,80,0,.12)">📦 AstroDX (.adx)</div>
+      <div class="imp-btn" id="adxBtn" onclick="document.getElementById('adxFI').click()" style="border-color:rgba(255,160,0,.5);color:#ffaa44;background:rgba(180,80,0,.12)">📦 AstroDX (.adx)</div>
     </div>
     <div class="import-row">
       <div class="imp-btn" onclick="document.getElementById('simaiFI').click()">📂 Simai / MajData (.txt)</div>
@@ -271,7 +271,7 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
 </div><!-- /overlay -->
 
 <!-- JSZip for .adx extraction -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="jszip.min.js"></script>
 <!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
@@ -663,38 +663,40 @@ function setImportStatus(msg, color){
   if(el){ el.textContent=msg; el.style.color=color||'#88aaff'; }
 }
 
-document.getElementById('adxFI').addEventListener('change', function(){
-  const files=Array.from(this.files);
-  const self=this;
-  if(!files.length) return;
-  setImportStatus('已選擇 '+files.length+' 個檔案，處理中…','#88aaff');
+function handleAdxFiles(files){
+  if(!files||!files.length) return;
+  const btn=document.getElementById('adxBtn');
+  setImportStatus('已收到 '+files.length+' 個檔案，解壓中…','#88aaff');
+  if(btn) btn.textContent='⏳ 處理中…';
 
   if(typeof JSZip==='undefined'){
-    setImportStatus('❌ JSZip 未載入，請重新整理頁面','#ff6666');
+    setImportStatus('❌ JSZip 未載入 — 請確認網路後重新整理','#ff6666');
+    if(btn) btn.textContent='📦 AstroDX (.adx)';
     return;
   }
 
-  let idx=0, ok=0, fail=0, failMsg='';
+  let idx=0,ok=0,fail=0,failMsg='';
   function next(){
     if(idx>=files.length){
+      if(btn) btn.textContent='📦 AstroDX (.adx)';
       if(fail>0) setImportStatus('⚠️ '+ok+'首成功，'+fail+'首失敗：'+failMsg,'#ff9966');
       else setImportStatus('✅ 成功匯入 '+ok+' 首！','#66ff99');
-      self.value='';
       return;
     }
     const f=files[idx++];
-    setImportStatus('解壓中：'+f.name,'#88aaff');
-    importAdx(f).then(function(){
-      ok++;
-      next();
-    }).catch(function(e){
-      fail++;
-      failMsg=e.message;
-      console.warn('adx import error',f.name,e);
+    setImportStatus('解壓中 ('+idx+'/'+files.length+')：'+f.name,'#88aaff');
+    importAdx(f).then(function(){ok++;next();}).catch(function(e){
+      fail++;failMsg=e.message;
+      console.warn('[adx]',f.name,e);
       next();
     });
   }
   next();
+}
+
+document.getElementById('adxFI').addEventListener('change',function(e){
+  handleAdxFiles(e.target.files||this.files);
+  this.value='';
 });
 
 async function importAdx(file){
