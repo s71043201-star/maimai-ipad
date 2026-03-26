@@ -1,0 +1,18 @@
+{
+  "name": "maimai Simulator",
+  "short_name": "maimai",
+  "description": "maimai rhythm game simulator for iPad",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

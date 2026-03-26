@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><body>
+<canvas id="c" width="512" height="512"></canvas>
+<a id="dl" download="icon.png">Download</a>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+ctx.fillStyle = '#000';
+ctx.fillRect(0,0,512,512);
+const g = ctx.createRadialGradient(256,256,30,256,256,220);
+g.addColorStop(0,'#1a0050');
+g.addColorStop(1,'#000020');
+ctx.fillStyle = g;
+ctx.beginPath(); ctx.arc(256,256,230,0,Math.PI*2); ctx.fill();
+ctx.beginPath(); ctx.arc(256,256,230,0,Math.PI*2);
+ctx.strokeStyle='rgba(180,130,255,0.8)'; ctx.lineWidth=8; ctx.stroke();
+ctx.beginPath(); ctx.arc(256,256,180,0,Math.PI*2);
+ctx.strokeStyle='rgba(220,180,255,0.4)'; ctx.lineWidth=3; ctx.stroke();
+const colors=['#ff6699','#ff9944','#ffdd00','#66dd44','#44ddcc','#4499ff','#9966ff','#ff55cc'];
+for(let i=0;i<8;i++){
+  const a=(i/8)*Math.PI*2-Math.PI/2;
+  const x=256+200*Math.cos(a), y=256+200*Math.sin(a);
+  ctx.beginPath(); ctx.arc(x,y,24,0,Math.PI*2);
+  ctx.fillStyle=colors[i]; ctx.fill();
+}
+ctx.fillStyle='#fff'; ctx.font='bold 72px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+ctx.fillText('mai',256,240); ctx.fillText('mai',256,315);
+document.getElementById('dl').href = c.toDataURL('image/png');
+</script>
+</body></html>
