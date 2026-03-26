@@ -141,28 +141,30 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
   overflow:hidden;z-index:30;display:none;opacity:.9;box-shadow:0 4px 20px rgba(0,0,0,.8)}
 
 /* ===== ATTRACT SCREEN ===== */
-#attract{background:#000;align-items:center;justify-content:center;cursor:pointer}
-#attract canvas{display:none}
+#attract{background:#111;align-items:center;justify-content:center;cursor:pointer}
 .attract-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  width:100%;height:100%;position:relative;overflow:hidden}
-.attract-bg{position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% 50%,#050a20 0%,#000 70%)}
-.attract-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.attract-logo-wrap{position:relative;z-index:2;text-align:center;margin-bottom:20px}
-.attract-logo{font-size:clamp(52px,12vw,96px);font-weight:900;letter-spacing:6px;
-  background:linear-gradient(180deg,#fff8e1 0%,#ffe57a 25%,#ffb300 55%,#ff6d00 100%);
+  width:100%;height:100%;position:relative;overflow:hidden;pointer-events:none}
+.attract-logo-wrap{position:relative;z-index:3;text-align:center;pointer-events:none}
+.attract-maimai-txt{font-size:clamp(14px,3vw,20px);font-weight:900;letter-spacing:3px;
+  background:linear-gradient(90deg,#fff8e1,#ffe57a,#ff6d00);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.attract-buddies-txt{font-size:clamp(38px,10vw,76px);font-weight:900;letter-spacing:2px;
+  color:#fff;text-shadow:0 0 0 #fff;
+  -webkit-text-stroke:2px #fff;
+  background:linear-gradient(180deg,#00eeff 0%,#0088ff 40%,#7700ff 100%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 20px rgba(255,160,0,.7));line-height:1}
-.attract-dx{font-size:clamp(18px,4vw,36px);font-weight:900;letter-spacing:4px;
-  background:linear-gradient(90deg,#00cfff 0%,#7b2fff 33%,#ff2fa0 66%,#ff6d00 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  filter:drop-shadow(0 0 12px rgba(150,100,255,.6));margin-top:-4px;display:block}
-.attract-tap{font-size:clamp(14px,3vw,22px);color:rgba(200,220,255,.85);
-  letter-spacing:6px;margin-top:32px;font-weight:700;text-transform:uppercase;
-  animation:tapBlink 1.4s ease-in-out infinite}
-@keyframes tapBlink{0%,100%{opacity:.3} 50%{opacity:1}}
-.attract-ver{position:absolute;bottom:20px;font-size:11px;color:rgba(80,120,200,.5);
-  letter-spacing:3px;text-transform:uppercase}
+  filter:drop-shadow(0 0 16px rgba(0,180,255,.8)) drop-shadow(3px 3px 0 rgba(0,0,60,.8));
+  line-height:1}
+.attract-buddies-jp{font-size:clamp(12px,2.5vw,18px);color:#ff8c00;font-weight:900;
+  letter-spacing:6px;margin-top:2px;
+  text-shadow:0 0 8px rgba(255,140,0,.6)}
+.attract-insert{font-size:clamp(13px,2.8vw,20px);font-weight:900;letter-spacing:5px;
+  color:#fff;margin-top:28px;
+  animation:tapBlink 1.2s ease-in-out infinite;
+  text-shadow:0 0 10px rgba(255,255,255,.5)}
+@keyframes tapBlink{0%,100%{opacity:.2} 50%{opacity:1}}
+.attract-ver{position:absolute;bottom:16px;font-size:10px;
+  color:rgba(200,220,255,.3);letter-spacing:3px;text-transform:uppercase}
 
 /* COUNTDOWN */
 #countdown{display:none;background:rgba(0,5,20,.88);align-items:center;justify-content:center}
@@ -282,14 +284,14 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
 <!-- ATTRACT SCREEN (shown first) -->
 <div class="screen" id="attract" onclick="gotoMenu()" style="display:flex">
   <div class="attract-inner">
-    <div class="attract-bg"></div>
     <canvas id="attractCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
     <div class="attract-logo-wrap">
-      <div class="attract-logo">maimai</div>
-      <span class="attract-dx">でらっくす</span>
+      <div class="attract-maimai-txt">maimai でらっくす</div>
+      <div class="attract-buddies-txt">BUDDiES+</div>
+      <div class="attract-buddies-jp">バディーズ＋</div>
     </div>
-    <div class="attract-tap">TAP TO START</div>
-    <div class="attract-ver">SIMULATOR · BUDDIIES+</div>
+    <div class="attract-insert">コインをいれてください</div>
+    <div class="attract-ver">SIMULATOR</div>
   </div>
 </div>
 
@@ -1493,37 +1495,93 @@ render();
   if(!ac) return;
   const actx=ac.getContext('2d');
   let aw,ah,t=0;
-  const notes=[];
-  function resize(){aw=ac.width=ac.offsetWidth;ah=ac.height=ac.offsetHeight;}
+  // BUDDiES color palette
+  const COLS=['#ff2d78','#ff8c00','#ffe000','#00e676','#00cfff','#aa00ff','#ff4081','#00b0ff'];
+  const sparks=[];
+  for(let i=0;i<30;i++) sparks.push({
+    a:Math.random()*Math.PI*2, r:0.3+Math.random()*0.5,
+    v:(Math.random()-.5)*0.003, col:COLS[Math.floor(Math.random()*COLS.length)],
+    phase:Math.random()*Math.PI*2, size:3+Math.random()*8
+  });
+
+  function resize(){
+    aw=ac.width=ac.offsetWidth||window.innerWidth;
+    ah=ac.height=ac.offsetHeight||window.innerHeight;
+  }
   resize();
   window.addEventListener('resize',resize);
-  // Spawn floating notes
-  for(let i=0;i<24;i++) notes.push({
-    x:Math.random()*1000,y:Math.random()*1000,
-    vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,
-    r:Math.random()*12+6,
-    col:['#ff4d88','#3399ff','#ffdd00','#44dd88','#aa55ff','#ff8800'][Math.floor(Math.random()*6)],
-    phase:Math.random()*Math.PI*2
-  });
+
+  function drawCheckerBorder(cx,cy,R,t){
+    const N=32; // segments
+    for(let i=0;i<N;i++){
+      const a1=(i/N)*Math.PI*2, a2=((i+1)/N)*Math.PI*2;
+      const inner=R*0.82, outer=R*0.99;
+      actx.beginPath();
+      actx.arc(cx,cy,outer,a1,a2);
+      actx.arc(cx,cy,inner,a2,a1,true);
+      actx.closePath();
+      const col=COLS[(i+Math.floor(t*2))%COLS.length];
+      actx.fillStyle=col;
+      actx.fill();
+    }
+  }
+
   function attractLoop(){
-    if(document.getElementById('attract').style.display==='none'){return;}
+    const el=document.getElementById('attract');
+    if(!el||el.style.display==='none') return;
     t+=0.016;
     actx.clearRect(0,0,aw,ah);
-    // Rotating rings
-    for(let i=0;i<4;i++){
-      const rr=Math.min(aw,ah)*(0.28+i*0.07);
-      actx.beginPath();actx.arc(aw/2,ah/2,rr,0,Math.PI*2);
-      actx.strokeStyle=`rgba(60,120,255,${0.06-i*0.01})`;actx.lineWidth=1.5;actx.stroke();
+    const cx=aw/2, cy=ah/2, R=Math.min(aw,ah)*0.47;
+
+    // Black background circle
+    actx.beginPath();actx.arc(cx,cy,R,0,Math.PI*2);
+    actx.fillStyle='#111';actx.fill();
+
+    // Checkered colorful border
+    drawCheckerBorder(cx,cy,R,t);
+
+    // Inner dark play field
+    actx.beginPath();actx.arc(cx,cy,R*0.81,0,Math.PI*2);
+    const bg=actx.createRadialGradient(cx,cy,0,cx,cy,R*0.81);
+    bg.addColorStop(0,'#1a0a2e');bg.addColorStop(1,'#080418');
+    actx.fillStyle=bg;actx.fill();
+
+    // Rotating colored segments inside
+    for(let i=0;i<8;i++){
+      const a1=(i/8)*Math.PI*2+t*0.3, a2=((i+0.45)/8)*Math.PI*2+t*0.3;
+      actx.beginPath();actx.moveTo(cx,cy);
+      actx.arc(cx,cy,R*0.78,a1,a2);actx.closePath();
+      actx.fillStyle=COLS[i]+'18';actx.fill();
     }
-    // Floating notes
-    notes.forEach(n=>{
-      n.x=(n.x+n.vx+aw)%aw; n.y=(n.y+n.vy+ah)%ah;
-      const a=0.15+0.1*Math.sin(t+n.phase);
-      actx.beginPath();actx.arc(n.x,n.y,n.r,0,Math.PI*2);
-      actx.fillStyle=n.col+Math.floor(a*255).toString(16).padStart(2,'0');actx.fill();
-      actx.beginPath();actx.arc(n.x,n.y,n.r*.65,0,Math.PI*2);
-      actx.fillStyle='rgba(255,255,255,'+a*.4+')';actx.fill();
+
+    // Sparkling dots around the border
+    sparks.forEach(s=>{
+      s.a+=s.v;
+      const sx=cx+R*s.r*Math.cos(s.a), sy=cy+R*s.r*Math.sin(s.a);
+      const alpha=0.4+0.4*Math.sin(t*3+s.phase);
+      actx.beginPath();actx.arc(sx,sy,s.size*(0.5+0.5*Math.sin(t*2+s.phase)),0,Math.PI*2);
+      actx.fillStyle=s.col+Math.floor(alpha*255).toString(16).padStart(2,'0');
+      actx.fill();
     });
+
+    // Center glow
+    const cg=actx.createRadialGradient(cx,cy,0,cx,cy,R*0.4);
+    cg.addColorStop(0,'rgba(150,50,255,0.12)');cg.addColorStop(1,'rgba(0,0,0,0)');
+    actx.beginPath();actx.arc(cx,cy,R*0.4,0,Math.PI*2);
+    actx.fillStyle=cg;actx.fill();
+
+    // Coin icon at center-bottom area (small)
+    const coinY=cy+R*0.38;
+    for(let i=0;i<3;i++){
+      actx.beginPath();actx.arc(cx+(i-1)*22,coinY,9,0,Math.PI*2);
+      actx.fillStyle='#f5c518';actx.fill();
+      actx.beginPath();actx.arc(cx+(i-1)*22,coinY,7,0,Math.PI*2);
+      actx.fillStyle='#e6a800';actx.fill();
+      actx.fillStyle='#fff8';actx.font='bold 8px Arial';
+      actx.textAlign='center';actx.textBaseline='middle';
+      actx.fillText('¥',cx+(i-1)*22,coinY);
+    }
+
     requestAnimationFrame(attractLoop);
   }
   attractLoop();
