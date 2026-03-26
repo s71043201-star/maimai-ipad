@@ -140,6 +140,30 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
 #ytPlayer{position:fixed;bottom:8px;right:8px;width:160px;height:90px;border-radius:8px;
   overflow:hidden;z-index:30;display:none;opacity:.9;box-shadow:0 4px 20px rgba(0,0,0,.8)}
 
+/* ===== ATTRACT SCREEN ===== */
+#attract{background:#000;align-items:center;justify-content:center;cursor:pointer}
+#attract canvas{display:none}
+.attract-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;position:relative;overflow:hidden}
+.attract-bg{position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 50%,#050a20 0%,#000 70%)}
+.attract-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.attract-logo-wrap{position:relative;z-index:2;text-align:center;margin-bottom:20px}
+.attract-logo{font-size:clamp(52px,12vw,96px);font-weight:900;letter-spacing:6px;
+  background:linear-gradient(180deg,#fff8e1 0%,#ffe57a 25%,#ffb300 55%,#ff6d00 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 20px rgba(255,160,0,.7));line-height:1}
+.attract-dx{font-size:clamp(18px,4vw,36px);font-weight:900;letter-spacing:4px;
+  background:linear-gradient(90deg,#00cfff 0%,#7b2fff 33%,#ff2fa0 66%,#ff6d00 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 12px rgba(150,100,255,.6));margin-top:-4px;display:block}
+.attract-tap{font-size:clamp(14px,3vw,22px);color:rgba(200,220,255,.85);
+  letter-spacing:6px;margin-top:32px;font-weight:700;text-transform:uppercase;
+  animation:tapBlink 1.4s ease-in-out infinite}
+@keyframes tapBlink{0%,100%{opacity:.3} 50%{opacity:1}}
+.attract-ver{position:absolute;bottom:20px;font-size:11px;color:rgba(80,120,200,.5);
+  letter-spacing:3px;text-transform:uppercase}
+
 /* COUNTDOWN */
 #countdown{display:none;background:rgba(0,5,20,.88);align-items:center;justify-content:center}
 #cdNum{font-size:clamp(80px,20vw,150px);font-weight:900;
@@ -148,21 +172,30 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
   filter:drop-shadow(0 0 30px rgba(255,180,0,.8))}
 
 /* RESULT */
-#result{display:none;background:radial-gradient(ellipse at 50% 0%,#0a1530,#020510);
-  align-items:center;justify-content:center}
-.r-title{font-size:clamp(13px,2.5vw,18px);letter-spacing:8px;color:#4488ff;margin-bottom:4px;text-transform:uppercase}
-.r-rank{font-size:clamp(70px,16vw,120px);font-weight:900;line-height:1;margin:4px 0;filter:drop-shadow(0 0 20px currentColor)}
-.r-ach{font-size:clamp(22px,5vw,40px);font-weight:900;margin-bottom:4px;
+#result{display:none;background:linear-gradient(180deg,#050d28 0%,#020510 100%);
+  align-items:center;justify-content:center;flex-direction:column;overflow-y:auto}
+.r-header{width:100%;background:linear-gradient(90deg,#0a1840,#152060,#0a1840);
+  border-bottom:2px solid rgba(100,160,255,.3);padding:10px 16px;text-align:center;
+  font-size:11px;color:#4488ff;letter-spacing:6px;text-transform:uppercase;flex-shrink:0}
+.r-song-info{font-size:13px;color:rgba(180,210,255,.7);margin:6px 0 2px;letter-spacing:1px}
+.r-diff-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:900;
+  letter-spacing:2px;margin-bottom:8px}
+.r-rank{font-size:clamp(64px,15vw,110px);font-weight:900;line-height:1;margin:2px 0;
+  filter:drop-shadow(0 0 24px currentColor);text-align:center}
+.r-ach{font-size:clamp(24px,5.5vw,42px);font-weight:900;
   background:linear-gradient(90deg,#fff 0%,#ffe57a 50%,#ffb300 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.r-badge{font-size:12px;color:#4488ff;letter-spacing:3px;margin-bottom:12px}
-.r-tbl{border-collapse:collapse;margin:4px 0;width:min(280px,80vw)}
-.r-tbl td{padding:4px 16px;font-size:clamp(12px,2.5vw,15px);text-align:center}
-.r-tbl .lbl{color:#556;text-align:right;font-weight:normal;font-size:clamp(10px,2vw,13px)}
-.rbtn{padding:11px 30px;margin:5px;font-size:clamp(12px,2.5vw,16px);font-weight:900;
-  border:none;border-radius:24px;color:#fff;cursor:pointer;letter-spacing:2px}
-#retryBtn{background:linear-gradient(135deg,#ff8c00,#ff3300);box-shadow:0 0 16px rgba(255,100,0,.4)}
-#menuBtn2{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2)}
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
+.r-ach-label{font-size:10px;color:rgba(100,150,255,.6);letter-spacing:4px;margin-bottom:10px;text-align:center}
+.r-stars{font-size:20px;letter-spacing:2px;margin:4px 0}
+.r-divider{width:80%;height:1px;background:linear-gradient(90deg,transparent,rgba(60,120,255,.4),transparent);margin:8px auto}
+.r-tbl{border-collapse:collapse;width:min(300px,88vw)}
+.r-tbl td{padding:5px 14px;font-size:clamp(12px,2.5vw,14px);text-align:center}
+.r-tbl .lbl{color:rgba(100,130,180,.6);text-align:right;font-size:clamp(10px,2vw,12px);letter-spacing:1px}
+.r-tbl .val{font-weight:900;font-size:clamp(13px,2.8vw,16px)}
+.rbtn{padding:12px 32px;margin:5px;font-size:clamp(12px,2.5vw,15px);font-weight:900;
+  border:none;border-radius:28px;color:#fff;cursor:pointer;letter-spacing:3px}
+#retryBtn{background:linear-gradient(135deg,#ff8c00,#ff3300);box-shadow:0 0 18px rgba(255,100,0,.4)}
+#menuBtn2{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.2)}
 </style>
 </head>
 <body>
@@ -172,7 +205,7 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
 
 <div id="overlay">
 <!-- MENU -->
-<div class="screen" id="menu">
+<div class="screen" id="menu" style="display:none">
   <!-- Header -->
   <div class="dx-header">
     <div class="logo-area">
@@ -246,25 +279,43 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
   </div>
 </div>
 
+<!-- ATTRACT SCREEN (shown first) -->
+<div class="screen" id="attract" onclick="gotoMenu()" style="display:flex">
+  <div class="attract-inner">
+    <div class="attract-bg"></div>
+    <canvas id="attractCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+    <div class="attract-logo-wrap">
+      <div class="attract-logo">maimai</div>
+      <span class="attract-dx">でらっくす</span>
+    </div>
+    <div class="attract-tap">TAP TO START</div>
+    <div class="attract-ver">SIMULATOR · BUDDIIES+</div>
+  </div>
+</div>
+
 <!-- COUNTDOWN -->
 <div class="screen" id="countdown"><div id="cdNum"></div></div>
 
 <!-- RESULT -->
 <div class="screen" id="result">
-  <div class="r-title">RESULT</div>
+  <div class="r-header">— RESULT —</div>
+  <div class="r-song-info" id="rSongInfo">METEOR</div>
+  <div class="r-diff-badge" id="rDiffBadge">MASTER</div>
   <div class="r-rank" id="rRank">S</div>
   <div class="r-ach" id="rAch">99.9999%</div>
-  <div class="r-badge" id="rBadge">ACHIEVEMENT RATE</div>
+  <div class="r-ach-label">ACHIEVEMENT RATE</div>
+  <div class="r-stars" id="rStars">⭐⭐⭐⭐⭐</div>
+  <div class="r-divider"></div>
   <table class="r-tbl">
-    <tr><td class="lbl">Critical Perfect</td><td id="rCP" style="color:#ffec42">0</td></tr>
-    <tr><td class="lbl">Perfect</td><td id="rP" style="color:#ffe082">0</td></tr>
-    <tr><td class="lbl">Great</td><td id="rG" style="color:#64b5f6">0</td></tr>
-    <tr><td class="lbl">Good</td><td id="rGO" style="color:#81c784">0</td></tr>
-    <tr><td class="lbl">Miss</td><td id="rM" style="color:#ef5350">0</td></tr>
-    <tr><td class="lbl">Max Combo</td><td id="rMC" style="color:#ffec42">0</td></tr>
+    <tr><td class="lbl">Critical Perfect</td><td class="val" id="rCP" style="color:#ffec42">0</td></tr>
+    <tr><td class="lbl">Perfect</td><td class="val" id="rP" style="color:#ffe082">0</td></tr>
+    <tr><td class="lbl">Great</td><td class="val" id="rG" style="color:#64b5f6">0</td></tr>
+    <tr><td class="lbl">Good</td><td class="val" id="rGO" style="color:#81c784">0</td></tr>
+    <tr><td class="lbl">Miss</td><td class="val" id="rM" style="color:#ef5350">0</td></tr>
+    <tr><td class="lbl">Max Combo</td><td class="val" id="rMC" style="color:#ffec42">0</td></tr>
   </table>
-  <div style="display:flex">
-    <button class="rbtn" id="retryBtn" onclick="retryGame()">RETRY</button>
+  <div style="display:flex;margin-top:10px">
+    <button class="rbtn" id="retryBtn" onclick="retryGame()">▶ RETRY</button>
     <button class="rbtn" id="menuBtn2" onclick="gotoMenu()">MENU</button>
   </div>
 </div>
@@ -921,6 +972,7 @@ function retryGame(){document.getElementById('result').style.display='none';begi
 function gotoMenu(){
   gState='menu';
   document.getElementById('result').style.display='none';
+  document.getElementById('attract').style.display='none';
   document.getElementById('menu').style.display='flex';
   document.getElementById('importModal').style.display='none';
   if(useYoutube&&ytReady) ytPlayer.stopVideo();
@@ -938,10 +990,20 @@ function showResult(){
   else if(ach>=99)rank='SS';else if(ach>=98)rank='S+';else if(ach>=97)rank='S';
   else if(ach>=94)rank='AAA';else if(ach>=90)rank='AA';else if(ach>=80)rank='A';
   else if(ach>=70)rank='BBB';else if(ach>=60)rank='BB';else if(ach>=50)rank='B';else if(ach>=40)rank='C';
-  const rc={'SSS+':'#ff69b4','SSS':'#ffaa00','SS+':'#ffdd00','SS':'#ffdd00','S+':'#fff','S':'#fff'};
+  const rc={'SSS+':'#ff69b4','SSS':'#ffbb00','SS+':'#ffee00','SS':'#ffee00','S+':'#ffffff','S':'#ffffff','AAA':'#88ffcc','AA':'#88ddff','A':'#aaaaff'};
+  // Stars based on DX score
+  const dxPct=ach/101;
+  const stars=dxPct>=0.97?5:dxPct>=0.8?4:dxPct>=0.6?3:dxPct>=0.4?2:1;
   document.getElementById('rRank').textContent=rank;
-  document.getElementById('rRank').style.color=rc[rank]||'#aaa';
+  document.getElementById('rRank').style.color=rc[rank]||'#888';
   document.getElementById('rAch').textContent=ach.toFixed(4)+'%';
+  document.getElementById('rStars').textContent='⭐'.repeat(stars)+'☆'.repeat(5-stars);
+  if(selectedSong) document.getElementById('rSongInfo').textContent=selectedSong.title+' / '+selectedSong.artist;
+  const db=document.getElementById('rDiffBadge');
+  db.textContent=selectedDiff;
+  db.style.background=(DIFF_COLORS[selectedDiff]||'#666')+'33';
+  db.style.color=DIFF_COLORS[selectedDiff]||'#aaa';
+  db.style.border='1px solid '+(DIFF_COLORS[selectedDiff]||'#666')+'88';
   document.getElementById('rCP').textContent=jud.cp;
   document.getElementById('rP').textContent=jud.p;
   document.getElementById('rG').textContent=jud.g;
@@ -1422,6 +1484,57 @@ function drawHUD(){
 
 // Initial render
 render();
+
+// ============================================================
+// ATTRACT SCREEN
+// ============================================================
+(function(){
+  const ac=document.getElementById('attractCanvas');
+  if(!ac) return;
+  const actx=ac.getContext('2d');
+  let aw,ah,t=0;
+  const notes=[];
+  function resize(){aw=ac.width=ac.offsetWidth;ah=ac.height=ac.offsetHeight;}
+  resize();
+  window.addEventListener('resize',resize);
+  // Spawn floating notes
+  for(let i=0;i<24;i++) notes.push({
+    x:Math.random()*1000,y:Math.random()*1000,
+    vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,
+    r:Math.random()*12+6,
+    col:['#ff4d88','#3399ff','#ffdd00','#44dd88','#aa55ff','#ff8800'][Math.floor(Math.random()*6)],
+    phase:Math.random()*Math.PI*2
+  });
+  function attractLoop(){
+    if(document.getElementById('attract').style.display==='none'){return;}
+    t+=0.016;
+    actx.clearRect(0,0,aw,ah);
+    // Rotating rings
+    for(let i=0;i<4;i++){
+      const rr=Math.min(aw,ah)*(0.28+i*0.07);
+      actx.beginPath();actx.arc(aw/2,ah/2,rr,0,Math.PI*2);
+      actx.strokeStyle=`rgba(60,120,255,${0.06-i*0.01})`;actx.lineWidth=1.5;actx.stroke();
+    }
+    // Floating notes
+    notes.forEach(n=>{
+      n.x=(n.x+n.vx+aw)%aw; n.y=(n.y+n.vy+ah)%ah;
+      const a=0.15+0.1*Math.sin(t+n.phase);
+      actx.beginPath();actx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      actx.fillStyle=n.col+Math.floor(a*255).toString(16).padStart(2,'0');actx.fill();
+      actx.beginPath();actx.arc(n.x,n.y,n.r*.65,0,Math.PI*2);
+      actx.fillStyle='rgba(255,255,255,'+a*.4+')';actx.fill();
+    });
+    requestAnimationFrame(attractLoop);
+  }
+  attractLoop();
+})();
+
+function showAttract(){
+  gState='attract';
+  const el=document.getElementById('attract');
+  el.style.display='flex';
+  document.getElementById('menu').style.display='none';
+}
 </script>
 </body>
 </html>
