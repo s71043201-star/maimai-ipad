@@ -214,7 +214,10 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
     <div class="import-handle"></div>
     <div class="import-title">匯入譜面 / ADD MUSIC</div>
     <div class="import-row">
-      <div class="imp-btn" onclick="document.getElementById('simaiFI').click()">📂 Simai / MajData</div>
+      <div class="imp-btn" onclick="document.getElementById('adxFI').click()" style="border-color:rgba(255,160,0,.5);color:#ffaa44;background:rgba(180,80,0,.12)">📦 AstroDX (.adx)</div>
+    </div>
+    <div class="import-row">
+      <div class="imp-btn" onclick="document.getElementById('simaiFI').click()">📂 Simai / MajData (.txt)</div>
       <div class="imp-btn" onclick="document.getElementById('audioFI').click()">🎵 音訊檔案</div>
     </div>
     <div class="import-row">
@@ -232,10 +235,12 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
       <input type="text" id="ytInput" placeholder="https://www.youtube.com/watch?v=...">
       <button class="go-btn" onclick="addYoutubeSong()">追加</button>
     </div>
-    <div id="dropZone" onclick="document.getElementById('simaiFI').click()">
-      點擊上傳 Simai .txt 譜面檔案
+    <div id="dropZone" onclick="document.getElementById('adxFI').click()">
+      點擊上傳 .adx 或 .txt 譜面檔案
     </div>
+    <div id="importStatus" style="font-size:12px;color:#88aaff;margin-top:6px;min-height:18px;text-align:center"></div>
     <button class="close-btn" onclick="toggleImportPanel()">✕ 關閉</button>
+    <input type="file" id="adxFI" accept=".adx,.zip" style="display:none" multiple>
     <input type="file" id="simaiFI" accept=".txt,.simai" style="display:none" multiple>
     <input type="file" id="audioFI" accept="audio/*" style="display:none">
   </div>
@@ -265,6 +270,8 @@ input[type=text]:focus,input[type=url]:focus{border-color:#4488ff}
 </div>
 </div><!-- /overlay -->
 
+<!-- JSZip for .adx extraction -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <!-- YouTube IFrame API -->
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
@@ -599,10 +606,11 @@ function renderSongList(){
     const div=document.createElement('div');
     div.className='song-item'+(selectedSong===s?' active':'');
     const dots=DIFF_ORDER.filter(d=>s.charts[d]).map(d=>`<span class="diff-dot ${d.replace(':','').replace(' ','')}"></span>`).join('');
+    const jacketHtml=s.coverUrl
+      ?`<img src="${s.coverUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">`
+      :`<div class="jacket-inner" style="background:linear-gradient(135deg,${jc[0]},${jc[1]})">♪</div>`;
     div.innerHTML=`
-      <div class="song-jacket">
-        <div class="jacket-inner" style="background:linear-gradient(135deg,${jc[0]},${jc[1]})">♪</div>
-      </div>
+      <div class="song-jacket">${jacketHtml}</div>
       <div class="song-info">
         <div class="song-title">${s.title}</div>
         <div class="song-meta">${s.artist} &nbsp;·&nbsp; BPM ${s.bpm}</div>
@@ -649,6 +657,69 @@ document.getElementById('speedSlider').oninput=function(){
   document.getElementById('speedVal').textContent='×'+noteSpeed.toFixed(1);
 };
 
+// .adx import (AstroDX package = ZIP archive)
+document.getElementById('adxFI').onchange=async function(){
+  const files=Array.from(this.files);
+  if(!files.length) return;
+  const statusEl=document.getElementById('importStatus');
+  statusEl.textContent=`正在解壓縮 ${files.length} 個檔案…`;
+  let ok=0,fail=0;
+  for(const f of files){
+    try{
+      await importAdx(f);
+      ok++;
+      statusEl.textContent=`已匯入 ${ok}/${files.length}…`;
+    }catch(e){
+      fail++;
+      console.warn('adx import error',f.name,e);
+    }
+  }
+  statusEl.textContent=`完成：${ok} 首成功${fail?`，${fail} 首失敗`:''}`;
+  this.value='';
+};
+
+async function importAdx(file){
+  let zip;
+  try{ zip=await JSZip.loadAsync(file); }
+  catch(e){ throw new Error('無法解壓：'+e.message); }
+
+  // Find maidata.txt (may be in subdirectory)
+  let maidataFile=null, audioFile=null, coverFile=null;
+  zip.forEach((path,entry)=>{
+    const name=path.split('/').pop().toLowerCase();
+    if(name==='maidata.txt'&&!maidataFile) maidataFile=entry;
+    else if((name==='track.mp3'||name==='track.ogg'||name==='track.wav'||name==='track.flac')&&!audioFile) audioFile=entry;
+    else if((name==='bg.jpg'||name==='bg.png'||name==='cover.jpg'||name==='cover.png'||name==='jacket.jpg'||name==='jacket.png')&&!coverFile) coverFile=entry;
+    // also accept any audio file if no track.*
+    else if(!audioFile&&(name.endsWith('.mp3')||name.endsWith('.ogg')||name.endsWith('.wav'))&&!name.startsWith('.')){
+      audioFile=entry;
+    }
+  });
+
+  if(!maidataFile) throw new Error('找不到 maidata.txt');
+
+  const text=await maidataFile.async('string');
+  const song=parseSimai(text);
+
+  if(audioFile){
+    const blob=await audioFile.async('blob');
+    const ext=audioFile.name.split('.').pop().toLowerCase();
+    const mime={'mp3':'audio/mpeg','ogg':'audio/ogg','wav':'audio/wav','flac':'audio/flac'}[ext]||'audio/mpeg';
+    const audioBlob=new Blob([blob],{type:mime});
+    song.audioType='file';
+    song.audioSrc=URL.createObjectURL(audioBlob);
+  } else {
+    song.audioType='synth';
+  }
+
+  if(coverFile){
+    const blob=await coverFile.async('blob');
+    song.coverUrl=URL.createObjectURL(blob);
+  }
+
+  addSong(song);
+}
+
 // File inputs
 document.getElementById('simaiFI').onchange=function(){
   Array.from(this.files).forEach(f=>{
@@ -673,7 +744,9 @@ dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
 dz.addEventListener('drop',e=>{
   e.preventDefault(); dz.classList.remove('drag');
   Array.from(e.dataTransfer.files).forEach(f=>{
-    if(f.name.endsWith('.txt')||f.name.endsWith('.simai')){
+    if(f.name.endsWith('.adx')||f.name.endsWith('.zip')){
+      importAdx(f).catch(err=>alert('匯入失敗：'+err.message));
+    } else if(f.name.endsWith('.txt')||f.name.endsWith('.simai')){
       const r=new FileReader(); r.onload=ev=>{ const s=parseSimai(ev.target.result); s.audioType='synth'; addSong(s); }; r.readAsText(f);
     } else if(f.type.startsWith('audio/')){
       const url=URL.createObjectURL(f);
