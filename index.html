@@ -658,41 +658,44 @@ document.getElementById('speedSlider').oninput=function(){
 };
 
 // .adx import (AstroDX package = ZIP archive)
-document.getElementById('adxFI').onchange=async function(){
-  const files=Array.from(this.files);
-  if(!files.length) return;
-  const statusEl=document.getElementById('importStatus');
+function setImportStatus(msg, color){
+  const el=document.getElementById('importStatus');
+  if(el){ el.textContent=msg; el.style.color=color||'#88aaff'; }
+}
 
-  // Check JSZip loaded
+document.getElementById('adxFI').addEventListener('change', function(){
+  const files=Array.from(this.files);
+  const self=this;
+  if(!files.length) return;
+  setImportStatus('已選擇 '+files.length+' 個檔案，處理中…','#88aaff');
+
   if(typeof JSZip==='undefined'){
-    statusEl.style.color='#ff6666';
-    statusEl.textContent='❌ JSZip 未載入，請確認網路連線後重新整理';
+    setImportStatus('❌ JSZip 未載入，請重新整理頁面','#ff6666');
     return;
   }
 
-  statusEl.style.color='#88aaff';
-  statusEl.textContent=`正在解壓縮…`;
-  let ok=0,fail=0,failMsg='';
-  for(const f of files){
-    try{
-      statusEl.textContent=`解壓中：${f.name}`;
-      await importAdx(f);
+  let idx=0, ok=0, fail=0, failMsg='';
+  function next(){
+    if(idx>=files.length){
+      if(fail>0) setImportStatus('⚠️ '+ok+'首成功，'+fail+'首失敗：'+failMsg,'#ff9966');
+      else setImportStatus('✅ 成功匯入 '+ok+' 首！','#66ff99');
+      self.value='';
+      return;
+    }
+    const f=files[idx++];
+    setImportStatus('解壓中：'+f.name,'#88aaff');
+    importAdx(f).then(function(){
       ok++;
-    }catch(e){
+      next();
+    }).catch(function(e){
       fail++;
       failMsg=e.message;
       console.warn('adx import error',f.name,e);
-    }
+      next();
+    });
   }
-  if(fail>0){
-    statusEl.style.color='#ff9966';
-    statusEl.textContent=`⚠️ ${ok}首成功，${fail}首失敗：${failMsg}`;
-  } else {
-    statusEl.style.color='#66ff99';
-    statusEl.textContent=`✅ 成功匯入 ${ok} 首！`;
-  }
-  this.value='';
-};
+  next();
+});
 
 async function importAdx(file){
   // Read as ArrayBuffer first to check if valid ZIP
