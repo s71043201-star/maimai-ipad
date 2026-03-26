@@ -662,41 +662,79 @@ document.getElementById('adxFI').onchange=async function(){
   const files=Array.from(this.files);
   if(!files.length) return;
   const statusEl=document.getElementById('importStatus');
-  statusEl.textContent=`正在解壓縮 ${files.length} 個檔案…`;
-  let ok=0,fail=0;
+
+  // Check JSZip loaded
+  if(typeof JSZip==='undefined'){
+    statusEl.style.color='#ff6666';
+    statusEl.textContent='❌ JSZip 未載入，請確認網路連線後重新整理';
+    return;
+  }
+
+  statusEl.style.color='#88aaff';
+  statusEl.textContent=`正在解壓縮…`;
+  let ok=0,fail=0,failMsg='';
   for(const f of files){
     try{
+      statusEl.textContent=`解壓中：${f.name}`;
       await importAdx(f);
       ok++;
-      statusEl.textContent=`已匯入 ${ok}/${files.length}…`;
     }catch(e){
       fail++;
+      failMsg=e.message;
       console.warn('adx import error',f.name,e);
     }
   }
-  statusEl.textContent=`完成：${ok} 首成功${fail?`，${fail} 首失敗`:''}`;
+  if(fail>0){
+    statusEl.style.color='#ff9966';
+    statusEl.textContent=`⚠️ ${ok}首成功，${fail}首失敗：${failMsg}`;
+  } else {
+    statusEl.style.color='#66ff99';
+    statusEl.textContent=`✅ 成功匯入 ${ok} 首！`;
+  }
   this.value='';
 };
 
 async function importAdx(file){
-  let zip;
-  try{ zip=await JSZip.loadAsync(file); }
-  catch(e){ throw new Error('無法解壓：'+e.message); }
+  // Read as ArrayBuffer first to check if valid ZIP
+  const buf=await file.arrayBuffer();
 
-  // Find maidata.txt (may be in subdirectory)
+  // Check ZIP magic number (PK\x03\x04)
+  const magic=new Uint8Array(buf,0,4);
+  if(magic[0]!==0x50||magic[1]!==0x4B){
+    throw new Error(`${file.name} 不是有效的壓縮檔（magic: ${magic[0].toString(16)} ${magic[1].toString(16)}）`);
+  }
+
+  let zip;
+  try{ zip=await JSZip.loadAsync(buf); }
+  catch(e){ throw new Error('解壓失敗：'+e.message); }
+
+  // List all files for debugging
+  const allPaths=[];
+  zip.forEach((path,entry)=>{ if(!entry.dir) allPaths.push(path); });
+  console.log('[adx] files in archive:', allPaths);
+
+  // Find files
   let maidataFile=null, audioFile=null, coverFile=null;
+  const audioExts=['mp3','ogg','wav','flac','m4a','aac'];
+  const coverNames=['bg.jpg','bg.png','cover.jpg','cover.png','jacket.jpg','jacket.png','album.jpg','album.png'];
+
   zip.forEach((path,entry)=>{
+    if(entry.dir) return;
     const name=path.split('/').pop().toLowerCase();
     if(name==='maidata.txt'&&!maidataFile) maidataFile=entry;
-    else if((name==='track.mp3'||name==='track.ogg'||name==='track.wav'||name==='track.flac')&&!audioFile) audioFile=entry;
-    else if((name==='bg.jpg'||name==='bg.png'||name==='cover.jpg'||name==='cover.png'||name==='jacket.jpg'||name==='jacket.png')&&!coverFile) coverFile=entry;
-    // also accept any audio file if no track.*
-    else if(!audioFile&&(name.endsWith('.mp3')||name.endsWith('.ogg')||name.endsWith('.wav'))&&!name.startsWith('.')){
-      audioFile=entry;
-    }
+    if(!audioFile&&audioExts.some(x=>name==='track.'+x)) audioFile=entry;
+    if(!coverFile&&coverNames.includes(name)) coverFile=entry;
+  });
+  // fallback: any audio file
+  if(!audioFile) zip.forEach((path,entry)=>{
+    if(entry.dir||audioFile) return;
+    const name=path.split('/').pop().toLowerCase();
+    if(audioExts.some(x=>name.endsWith('.'+x))) audioFile=entry;
   });
 
-  if(!maidataFile) throw new Error('找不到 maidata.txt');
+  if(!maidataFile){
+    throw new Error(`找不到 maidata.txt（壓縮檔內容：${allPaths.slice(0,5).join(', ')}）`);
+  }
 
   const text=await maidataFile.async('string');
   const song=parseSimai(text);
@@ -704,17 +742,16 @@ async function importAdx(file){
   if(audioFile){
     const blob=await audioFile.async('blob');
     const ext=audioFile.name.split('.').pop().toLowerCase();
-    const mime={'mp3':'audio/mpeg','ogg':'audio/ogg','wav':'audio/wav','flac':'audio/flac'}[ext]||'audio/mpeg';
-    const audioBlob=new Blob([blob],{type:mime});
+    const mime={'mp3':'audio/mpeg','ogg':'audio/ogg','wav':'audio/wav','flac':'audio/flac','m4a':'audio/mp4','aac':'audio/aac'}[ext]||'audio/mpeg';
     song.audioType='file';
-    song.audioSrc=URL.createObjectURL(audioBlob);
+    song.audioSrc=URL.createObjectURL(new Blob([blob],{type:mime}));
   } else {
     song.audioType='synth';
   }
 
   if(coverFile){
     const blob=await coverFile.async('blob');
-    song.coverUrl=URL.createObjectURL(blob);
+    song.coverUrl=URL.createObjectURL(new Blob([blob],{type:'image/jpeg'}));
   }
 
   addSong(song);
